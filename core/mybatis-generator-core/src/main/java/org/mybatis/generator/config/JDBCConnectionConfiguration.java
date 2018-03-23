@@ -1,5 +1,5 @@
 /**
- *    Copyright 2006-2016 the original author or authors.
+ *    Copyright 2006-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -37,6 +37,10 @@ public class JDBCConnectionConfiguration extends PropertyHolder {
 
     private String password;
 
+    private String appName;
+
+    private String groupKey;
+
     public JDBCConnectionConfiguration() {
         super();
     }
@@ -73,15 +77,39 @@ public class JDBCConnectionConfiguration extends PropertyHolder {
         this.driverClass = driverClass;
     }
 
+    public String getAppName() {
+        return appName;
+    }
+
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
+
+    public String getGroupKey() {
+        return groupKey;
+    }
+
+    public void setGroupKey(String groupKey) {
+        this.groupKey = groupKey;
+    }
+
     public XmlElement toXmlElement() {
         XmlElement xmlElement = new XmlElement("jdbcConnection"); //$NON-NLS-1$
-        xmlElement.addAttribute(new Attribute("driverClass", driverClass)); //$NON-NLS-1$
-        xmlElement.addAttribute(new Attribute("connectionURL", connectionURL)); //$NON-NLS-1$
-
+        if (stringHasValue(appName)) {
+            xmlElement.addAttribute(new Attribute("appName", appName)); //$NON-NLS-1$
+        }
+        if (stringHasValue(groupKey)) {
+            xmlElement.addAttribute(new Attribute("groupKey", groupKey)); //$NON-NLS-1$
+        }
+        if (stringHasValue(driverClass)) {
+            xmlElement.addAttribute(new Attribute("driverClass", driverClass)); //$NON-NLS-1$
+        }
+        if (stringHasValue(connectionURL)) {
+            xmlElement.addAttribute(new Attribute("connectionURL", connectionURL)); //$NON-NLS-1$
+        }
         if (stringHasValue(userId)) {
             xmlElement.addAttribute(new Attribute("userId", userId)); //$NON-NLS-1$
         }
-
         if (stringHasValue(password)) {
             xmlElement.addAttribute(new Attribute("password", password)); //$NON-NLS-1$
         }

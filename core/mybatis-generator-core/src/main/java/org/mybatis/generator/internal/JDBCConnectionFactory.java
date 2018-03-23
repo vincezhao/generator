@@ -1,5 +1,5 @@
 /**
- *    Copyright 2006-2016 the original author or authors.
+ *    Copyright 2006-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import com.taobao.tddl.client.jdbc.TDataSource;
+import com.taobao.tddl.rule.le.TddlRuleInner;
 import org.mybatis.generator.api.ConnectionFactory;
 import org.mybatis.generator.config.JDBCConnectionConfiguration;
 
@@ -41,6 +43,8 @@ public class JDBCConnectionFactory implements ConnectionFactory {
     private String connectionURL;
     private String driverClass;
     private Properties otherProperties;
+    private String appName;
+    private String groupKey;
 
     /**
      * This constructor is called when there is a JDBCConnectionConfiguration
@@ -55,6 +59,8 @@ public class JDBCConnectionFactory implements ConnectionFactory {
         connectionURL = config.getConnectionURL();
         driverClass = config.getDriverClass();
         otherProperties = config.getProperties();
+        appName = config.getAppName();
+        groupKey = config.getGroupKey();
     }
     
     /**
@@ -67,6 +73,28 @@ public class JDBCConnectionFactory implements ConnectionFactory {
 
     public Connection getConnection()
             throws SQLException {
+
+        if ((stringHasValue(appName))) {
+            TDataSource ds = new TDataSource();
+            try {
+                ds.setAppName(appName);
+                if (stringHasValue(groupKey)) {
+                    ds.setDynamicRule(true);
+                    TddlRuleInner tddlRule = new TddlRuleInner();
+                    tddlRule.setDefaultDbIndex(groupKey);
+                    tddlRule.setAllowEmptyRule(true);
+                    ds.setTddlRule(tddlRule);
+                } else {
+                    ds.setSharding(false);
+                }
+                ds.init();
+                Connection connection = ds.getConnection();
+                return connection;
+            } catch (Exception e) {
+                throw new SQLException(getString("RuntimeError.8")); //$NON-NLS-1$
+            }
+        }
+
         Driver driver = getDriver();
 
         Properties props = new Properties();
@@ -111,6 +139,8 @@ public class JDBCConnectionFactory implements ConnectionFactory {
         password = properties.getProperty("password");
         connectionURL = properties.getProperty("connectionURL");
         driverClass = properties.getProperty("driverClass");
+        appName = properties.getProperty("appName");
+        groupKey = properties.getProperty("groupKey");
         
         otherProperties = new Properties();
         otherProperties.putAll(properties);
@@ -120,5 +150,7 @@ public class JDBCConnectionFactory implements ConnectionFactory {
         otherProperties.remove("password");
         otherProperties.remove("connectionURL");
         otherProperties.remove("driverClass");
+        otherProperties.remove("appName");
+        otherProperties.remove("groupKey");
     }
 }
